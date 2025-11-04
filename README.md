@@ -19,6 +19,7 @@ https://github.com/user-attachments/assets/5cca303c-9c91-4805-ad37-8213e5124f62
 - The plugin parses Obsidian's diary note files (usually Markdown files named by date)
 - Extracts primary or secondary level headings (configured by the user)
 - Each extracted heading becomes a calendar entry corresponding to the date in the filename
+- If the heading contains time (HH:mm), it will be parsed and used as the event start time. If no time is found, the event will be considered as an all-day event.
 
 ### Calendar Entry Details
 Each calendar entry (event) will contain:
@@ -33,6 +34,18 @@ Each calendar entry (event) will contain:
 If the diary has frontmatter fields, the plugin concatenates the day's frontmatter into a text output as an additional event.
 By default, each property is displayed on a separate line as the event description.
 Custom rules can be edited, for example: `weather:{{weather}} mood:{{mood}}` to extract weather and mood properties from frontmatter.
+If you don't know frontmatter, you can refer to the [official documentation](https://help.obsidian.md/Properties) for more information.
+
+
+### Time Parsing Rules
+- If the heading contains time (HH:mm) or time range (HH:mm~HH:mm), it will be parsed and used as the event start time.
+- If no time is found, the event will be considered as an all-day event.
+
+Examples of titles that can be parsed:
+- `## 10:00~12:00 Team Meeting` will be parsed as a meeting from 10:00 to 12:00
+- `## Team Meeting 10:00` will be parsed as a meeting from 10:00 to 11:00 (default end time is 1 hour after start time)
+- `## Outdoor Walk` will be parsed as an all-day event
+
 
 ## Example Explanation
 
@@ -50,15 +63,20 @@ Assume you have a diary file: `2025-05-14.md` with the following content:
 
 ## Afternoon Tasks
 - Meet with team to discuss requirements
+
+## Evening Tasks 19:00
+- Dinner with friends
+
 ```
 
 If the user sets the plugin to extract all secondary level headings:
 
-The plugin will extract two calendar entries:
+The plugin will extract 3 calendar entries:
 - Event 1: Title "Morning Tasks", description includes "Plan with R&D", link to the diary
 - Event 2: Title "Afternoon Tasks", description is empty, link to the diary
+- Event 3: Title "Evening Tasks", description is empty, link to the diary, time is 19:00-20:00
 
-After subscribing to `http://127.0.0.1:99347/feed.ics` in the system calendar, you can see these two events.
+After subscribing to `http://127.0.0.1:99347/feed.ics` in the system calendar, you can see these three events.
 
 ## Usage Instructions
 
