@@ -15,6 +15,8 @@ interface DiaryIcsSettings {
 	// 日记设置
 	diaryFormat: string;
 	diaryFolder: string;
+	// 时间提取设置
+	extractTimeRange: boolean;
 }
 
 const DEFAULT_DAILY_NOTE_FORMAT = 'YYYY-MM-DD';
@@ -28,7 +30,8 @@ const DEFAULT_SETTINGS: DiaryIcsSettings = {
 	frontmatterTemplate: '',
 	frontmatterTitleTemplate: '',
 	diaryFormat: DEFAULT_DAILY_NOTE_FORMAT,
-	diaryFolder: ''
+	diaryFolder: '',
+	extractTimeRange: true
 }
 
 export default class DiaryIcsPlugin extends Plugin {
@@ -173,8 +176,6 @@ export default class DiaryIcsPlugin extends Plugin {
 		if (this.dailyNoteFolder && !file.path.startsWith(matchFolder)) return false;
 
 		// 使用moment库验证文件名是否符合日期格式
-		// @ts-ignore - window.moment 在Obsidian中已经内置
-		// const moment = window.moment;
 		if (!moment) {
 			console.error(this.locale.cannotGetMoment);
 			return false;
@@ -259,8 +260,6 @@ export default class DiaryIcsPlugin extends Plugin {
 			new Notice(formatString(this.locale.generatingIcsFiles, files.length), 1000);
 		for (const file of files) {
 			// 从文件名解析日期，使用moment库根据配置的日记格式解析
-			// @ts-ignore - window.moment 在Obsidian中已经内置
-			// const moment = window.moment;
 			const date = moment(file.basename, this.dailyNoteFormat, true);
 			const year = date.year();
 			const month = date.month() + 1; // moment月份从0开始，需要+1
@@ -363,13 +362,50 @@ export default class DiaryIcsPlugin extends Plugin {
 				// 	description += entry.content + '\n\n';
 				// }
 
+				// 处理时间提取
+				let eventTitle = entry.title;
+				// 使用联合类型解决类型问题
+				let eventStart: [number, number, number] | [number, number, number, number, number] = [year, month, day];
+				// 修改duration类型以支持hours和minutes
+				let eventDuration: { days?: number; hours?: number; minutes?: number } = {days: 1}; // 默认为全天事件
+				
+				if (this.settings.extractTimeRange) {
+					const timeResult = this.extractTimeFromTitle(entry.title);
+					eventTitle = timeResult.cleanTitle;
+					
+					if (timeResult.hasTime && timeResult.startTime) {
+						// 有时间信息，设置为非全天事件
+						eventStart = [year, month, day, timeResult.startTime[0], timeResult.startTime[1]];
+						
+						if (timeResult.endTime) {
+							// 计算持续时间
+							const startMinutes = timeResult.startTime[0] * 60 + timeResult.startTime[1];
+							let endMinutes = timeResult.endTime[0] * 60 + timeResult.endTime[1];
+							
+							// 如果结束时间小于开始时间，认为是跨天了
+							if (endMinutes < startMinutes) {
+								endMinutes += 24 * 60;
+							}
+							
+							const durationMinutes = endMinutes - startMinutes;
+							// 计算小时和分钟
+							const durationHours = Math.floor(durationMinutes / 60);
+							const durationMins = durationMinutes % 60;
+							// 设置正确的duration属性
+							eventDuration = {};
+							if (durationHours > 0) eventDuration.hours = durationHours;
+							if (durationMins > 0) eventDuration.minutes = durationMins;
+						}
+					}
+				}
+				
 				// 创建事件
 				events.push({
-					title: entry.title,
+					title: eventTitle,
 					url: `obsidian://open?vault=${encodeURIComponent(vaultName)}&file=${encodeURIComponent(file.path)}${encodeURIComponent(`#${entry.title}`)}`,
 					description: description,
-					start: [year, month, day],
-					duration: {days: 1}, // 默认为全天事件
+					start: eventStart,
+					duration: eventDuration,
 					status: 'CONFIRMED',
 					busyStatus: 'FREE'
 				});
@@ -386,6 +422,60 @@ export default class DiaryIcsPlugin extends Plugin {
 				}
 			});
 		});
+	}
+
+	// 从标题中提取时间范围
+	extractTimeFromTitle(title: string): { hasTime: boolean; startTime?: [number, number]; endTime?: [number, number]; cleanTitle: string } {
+		// 匹配格式：HH:mm~HH:mm 或 09:00~10:00
+		const timeRangeRegex = /(?<!\d)(\d{1,2}):(\d{2})\s*[~～\-]\s*(\d{1,2}):(\d{2})(?!\d)/;
+		// 匹配单个时间：HH:mm 或 09:00
+		const singleTimeRegex = /(?<!\d)(\d{1,2}):(\d{2})(?!\d)/;
+		
+		// 首先尝试匹配时间范围
+		const rangeMatch = title.match(timeRangeRegex);
+		if (rangeMatch) {
+
+			const startHour = parseInt(rangeMatch[1], 10);
+			const startMinute = parseInt(rangeMatch[2], 10);
+			const endHour = parseInt(rangeMatch[3], 10);
+			const endMinute = parseInt(rangeMatch[4], 10);
+
+			
+			// 清理标题中的时间部分
+			const cleanTitle = title.replace(timeRangeRegex, '').trim();
+			
+			return {
+				hasTime: true,
+				startTime: [startHour, startMinute],
+				endTime: [endHour, endMinute],
+				cleanTitle
+			};
+		}
+		
+		// 然后尝试匹配单个时间
+		const singleMatch = title.match(singleTimeRegex);
+		if (singleMatch) {
+
+			const hour = parseInt(singleMatch[1], 10);
+			const minute = parseInt(singleMatch[2], 10);
+			
+			// 清理标题中的时间部分
+			const cleanTitle = title.replace(singleTimeRegex, '').trim();
+			
+			return {
+				hasTime: true,
+				startTime: [hour, minute],
+				// 单个时间默认1小时后结束
+				endTime: [(hour + 1) % 24, minute],
+				cleanTitle
+			};
+		}
+		
+		// 没有找到时间
+		return {
+			hasTime: false,
+			cleanTitle: title
+		};
 	}
 }
 
@@ -444,6 +534,16 @@ class DiaryIcsSettingTab extends PluginSettingTab {
 			.setValue(this.plugin.settings.includeSubheadings)
 			.onChange(async (value) => {
 				this.plugin.settings.includeSubheadings = value;
+				await this.plugin.saveSettings(false);
+			}));
+
+		new Setting(containerEl)
+		.setName(locale.extractTimeRangeSetting)
+		.setDesc(locale.extractTimeRangeDesc)
+		.addToggle(toggle => toggle
+			.setValue(this.plugin.settings.extractTimeRange)
+			.onChange(async (value) => {
+				this.plugin.settings.extractTimeRange = value;
 				await this.plugin.saveSettings(false);
 			}));
 

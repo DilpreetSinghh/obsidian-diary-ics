@@ -29,6 +29,8 @@ interface LanguageStrings {
     h2Option: string;
     includeSubheadingsSetting: string;
     includeSubheadingsDesc: string;
+    extractTimeRangeSetting: string;
+    extractTimeRangeDesc: string;
     diarySettingsTitle: string;
     diaryFormatSetting: string;
     diaryFormatDesc: string;
@@ -83,6 +85,8 @@ const en: LanguageStrings = {
     h2Option: "Level 2 heading (##)",
     includeSubheadingsSetting: "Include subheadings",
     includeSubheadingsDesc: "Include subheadings under the heading in the calendar event description",
+    extractTimeRangeSetting: "Auto-extract time range",
+    extractTimeRangeDesc: "Automatically extract HH:mm or HH:mm~HH:mm format time from title as event start and end time",
     diarySettingsTitle: "Diary",
     diaryFormatSetting: "Diary naming format",
     diaryFormatDesc: "The naming format of diary files, e.g., YYYY-MM-DD",
@@ -137,6 +141,8 @@ const zh: LanguageStrings = {
     h2Option: "二级标题 (##)",
     includeSubheadingsSetting: "包含子级标题",
     includeSubheadingsDesc: "在日历事件描述中包含标题下的子级标题",
+    extractTimeRangeSetting: "自动提取时间段",
+    extractTimeRangeDesc: "自动从标题中提取HH:mm或HH:mm~HH:mm格式的时间作为事件的开始和结束时间",
     diarySettingsTitle: "日记设置",
     diaryFormatSetting: "日记命名格式",
     diaryFormatDesc: "日记文件的命名格式，例如YYYY-MM-DD",
