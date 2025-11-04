@@ -31,6 +31,11 @@ interface LanguageStrings {
     includeSubheadingsDesc: string;
     extractTimeRangeSetting: string;
     extractTimeRangeDesc: string;
+    extractTimeRangeExampleTitle: string;
+    extractTimeRangeExample1: string;
+    extractTimeRangeExample2: string;
+    extractTimeRangeExample3: string;
+    extractTimeRangeExample4: string;
     diarySettingsTitle: string;
     diaryFormatSetting: string;
     diaryFormatDesc: string;
@@ -87,6 +92,12 @@ const en: LanguageStrings = {
     includeSubheadingsDesc: "Include subheadings under the heading in the calendar event description",
     extractTimeRangeSetting: "Auto-extract time range",
     extractTimeRangeDesc: "Automatically extract HH:mm or HH:mm~HH:mm format time from title as event start and end time",
+    extractTimeRangeExampleTitle: "Examples of titles that can be recognized:",
+    extractTimeRangeExample1: "## 10:00~12:00 Team Meeting",
+    extractTimeRangeExample2: "## Team Meeting 10:00-12:00",
+    extractTimeRangeExample3: "## 19:00 Out and meet with colleagues",
+    extractTimeRangeExample4: "## Go to park and play badminton 10:00",
+
     diarySettingsTitle: "Diary",
     diaryFormatSetting: "Diary naming format",
     diaryFormatDesc: "The naming format of diary files, e.g., YYYY-MM-DD",
@@ -143,6 +154,11 @@ const zh: LanguageStrings = {
     includeSubheadingsDesc: "在日历事件描述中包含标题下的子级标题",
     extractTimeRangeSetting: "自动提取时间段",
     extractTimeRangeDesc: "自动从标题中提取HH:mm或HH:mm~HH:mm格式的时间作为事件的开始和结束时间",
+    extractTimeRangeExampleTitle: "可被识别出时间的标题示例:",
+    extractTimeRangeExample1: "## 10:00~12:00团队会议",
+    extractTimeRangeExample2: "## 团队会议10:00～12:00",
+    extractTimeRangeExample3: "## 19:00出门和同事聚餐",
+    extractTimeRangeExample4: "## 去公园打羽毛球10:00",
     diarySettingsTitle: "日记设置",
     diaryFormatSetting: "日记命名格式",
     diaryFormatDesc: "日记文件的命名格式，例如YYYY-MM-DD",

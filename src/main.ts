@@ -547,6 +547,13 @@ class DiaryIcsSettingTab extends PluginSettingTab {
 				await this.plugin.saveSettings(false);
 			}));
 
+		
+		const extractTimeExample = containerEl.createEl('div', {text: locale.extractTimeRangeExampleTitle, cls: 'diary-ics-template-example'});
+		extractTimeExample.createEl('div', {text: locale.extractTimeRangeExample1});
+		extractTimeExample.createEl('div', {text: locale.extractTimeRangeExample2});
+		extractTimeExample.createEl('div', {text: locale.extractTimeRangeExample3});
+		extractTimeExample.createEl('div', {text: locale.extractTimeRangeExample4});
+
 		// new Setting(containerEl)
 		// 	.setName('包含内容')
 		// 	.setDesc('在日历事件描述中包含标题下的内容')
