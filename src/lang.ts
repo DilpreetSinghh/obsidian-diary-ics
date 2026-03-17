@@ -27,6 +27,8 @@ interface LanguageStrings {
     headingLevelDesc: string;
     h1Option: string;
     h2Option: string;
+    bulletOption: string;
+    taskOption: string;
     includeSubheadingsSetting: string;
     includeSubheadingsDesc: string;
     extractTimeRangeSetting: string;
@@ -88,6 +90,8 @@ const en: LanguageStrings = {
     headingLevelDesc: "Which level of headings to extract from diary as calendar entries",
     h1Option: "Level 1 heading (#)",
     h2Option: "Level 2 heading (##)",
+    bulletOption: "Bullet Point (-)",
+    taskOption: "Tasks (- [ ])",
     includeSubheadingsSetting: "Include subheadings",
     includeSubheadingsDesc: "Include subheadings under the heading in the calendar event description",
     extractTimeRangeSetting: "Auto-extract time range",
@@ -150,6 +154,8 @@ const zh: LanguageStrings = {
     headingLevelDesc: "从日记中提取哪一级标题作为日历条目",
     h1Option: "一级标题 (#)",
     h2Option: "二级标题 (##)",
+    bulletOption: "项目符号 (-)",
+    taskOption: "任务 (- [ ])",
     includeSubheadingsSetting: "包含子级标题",
     includeSubheadingsDesc: "在日历事件描述中包含标题下的子级标题",
     extractTimeRangeSetting: "自动提取时间段",

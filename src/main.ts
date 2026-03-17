@@ -193,7 +193,57 @@ export default class DiaryIcsPlugin extends Plugin {
 		const fileCache = this.app.metadataCache.getFileCache(file);
 		const entries: {title: string, content : string }[] = [];
 
-		// 如果没有缓存或没有标题信息，则返回空数组
+		// 根据设置选择要提取的内容类型
+		const extractMode = this.settings.headingLevel;
+
+		// 处理 bullet 和 tasks 模式
+		if (extractMode === 'bullet' || extractMode === 'tasks') {
+			// 读取文件内容
+			const fileContent = await this.app.vault.read(file);
+			const lines = fileContent.split('\n');
+			let frontmatterEnd = 0;
+
+			// 跳过frontmatter
+			if (lines[0] === '---') {
+				for (let i = 1; i < lines.length; i++) {
+					if (lines[i] === '---') {
+						frontmatterEnd = i + 1;
+						break;
+					}
+				}
+			}
+
+			const isTaskMode = extractMode === 'tasks';
+
+			for (let i = frontmatterEnd; i < lines.length; i++) {
+				const line = lines[i];
+				const trimmed = line.trim();
+
+				// 检查是否是列表项 (bullet) 或任务项 (task)
+				const bulletMatch = trimmed.match(/^[-*+]\s+(.+)$/);
+				const taskMatch = trimmed.match(/^-\s+\[[x ]\]\s+(.+)$/);
+
+				if (isTaskMode && taskMatch) {
+					// 提取任务
+					const taskText = taskMatch[1];
+					entries.push({
+						title: taskText,
+						content: ''
+					});
+				} else if (!isTaskMode && bulletMatch && !trimmed.match(/^-\s+\[[x ]\]/)) {
+					// 提取项目符号（排除任务项）
+					const bulletText = bulletMatch[1];
+					entries.push({
+						title: bulletText,
+						content: ''
+					});
+				}
+			}
+
+			return entries;
+		}
+
+		// 否则使用原有的标题提取逻辑
 		if (!fileCache || !fileCache.headings) {
 			// console.log(formatString(this.locale.cannotGetFileCache, file.path));
 			return [];
@@ -202,10 +252,6 @@ export default class DiaryIcsPlugin extends Plugin {
 		// 根据设置选择要提取的标题级别
 		const headingLevel = this.settings.headingLevel === 'h1' ? 1 : 2;
 		const subheadingLevel = headingLevel + 1;
-
-		// 获取文件内容，用于提取标题下的内容
-		// const content = await this.app.vault.read(file);
-		// const lines = content.split('\n');
 
 		// console.log (" 解析日记文件: ", file.path, " 解析标题: ", fileCache.headings);
 		// 筛选出指定级别的标题
@@ -521,6 +567,8 @@ class DiaryIcsSettingTab extends PluginSettingTab {
 			.addDropdown(dropdown => dropdown
 				.addOption('h1', locale.h1Option)
 				.addOption('h2', locale.h2Option)
+				.addOption('bullet', locale.bulletOption)
+				.addOption('tasks', locale.taskOption)
 				.setValue(this.plugin.settings.headingLevel)
 				.onChange(async (value) => {
 					this.plugin.settings.headingLevel = value;
