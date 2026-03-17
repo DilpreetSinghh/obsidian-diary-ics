@@ -17,18 +17,22 @@ https://github.com/user-attachments/assets/5cca303c-9c91-4805-ad37-8213e5124f62
 
 ### Diary Content Parsing Rules
 - The plugin parses Obsidian's diary note files (usually Markdown files named by date)
-- Extracts primary or secondary level headings (configured by the user)
-- Each extracted heading becomes a calendar entry corresponding to the date in the filename
-- If the heading contains time (HH:mm), it will be parsed and used as the event start time. If no time is found, the event will be considered as an all-day event.
+- Extracts content based on the configured extraction mode:
+  - **Headings** (Level 1 or Level 2): Extract headings as calendar entries
+  - **Bullet Points**: Extract all bullet point items (`-`, `*`, or `+`) as calendar entries
+  - **Tasks**: Extract checkbox items (`- [ ]` or `- [x]`) as calendar entries
+- Each extracted item becomes a calendar entry corresponding to the date in the filename
+- If an item contains time (HH:mm), it will be parsed and used as the event start time. If no time is found, the event will be considered as an all-day event.
 
 ### Calendar Entry Details
 Each calendar entry (event) will contain:
-- **Title**: Primary or secondary level heading extracted from the diary file
+- **Title**: The extracted heading, bullet point, or task text from the diary file
 - **Link (URL)**: A clickable link 
   - Format: `obsidian://open?vault=YourVaultName&file=DiaryFilePath`
   - Clicking it directly jumps back to the corresponding diary file in Obsidian
 - **Description**:
-  - Contains all subheadings under the extracted heading
+  - For heading-based extraction: Contains all subheadings under the extracted heading
+  - For bullet/task extraction: Description is empty (can be enabled via settings)
 
 ### Frontmatter
 If the diary has frontmatter fields, the plugin concatenates the day's frontmatter into a text output as an additional event.
@@ -38,13 +42,16 @@ If you don't know frontmatter, you can refer to the [official documentation](htt
 
 
 ### Time Parsing Rules
-- If the heading contains time (HH:mm) or time range (HH:mm~HH:mm), it will be parsed and used as the event start time.
+- If any extracted item contains time (HH:mm) or time range (HH:mm~HH:mm), it will be parsed and used as the event start time.
 - If no time is found, the event will be considered as an all-day event.
 
-Examples of titles that can be parsed:
+Examples of items that can be parsed:
 - `## 10:00~12:00 Team Meeting` will be parsed as a meeting from 10:00 to 12:00
 - `## Team Meeting 10:00` will be parsed as a meeting from 10:00 to 11:00 (default end time is 1 hour after start time)
+- `- 14:30 Buy groceries` will be parsed as a bullet point event from 14:30 to 15:30
+- `- [x] 09:00~10:00 Team standup` will be parsed as a completed task from 09:00 to 10:00
 - `## Outdoor Walk` will be parsed as an all-day event
+- `- [ ] Call mom` will be parsed as an all-day task
 
 
 ## Example Explanation
@@ -78,12 +85,33 @@ The plugin will extract 3 calendar entries:
 
 After subscribing to `http://127.0.0.1:99347/feed.ics` in the system calendar, you can see these three events.
 
+## Configuration Options
+
+### Content Settings
+- **Heading Level** / **Extraction Mode**: Choose what to extract from your diary:
+  - Level 1 heading (#)
+  - Level 2 heading (##)
+  - Bullet Points (-)
+  - Tasks (- [ ])
+- **Include Subheadings**: Show subheadings under extracted items in the calendar event description (heading mode only)
+- **Auto-extract Time Range**: Automatically detect and extract HH:mm or HH:mm~HH:mm time formats from item text
+
+### Diary Settings
+- **Diary Naming Format**: Format of your diary file names (e.g., YYYY-MM-DD)
+- **Diary Folder**: Folder path where diary files are located (leave empty for root directory)
+
+### Frontmatter Settings
+- **Include Frontmatter**: Add frontmatter properties as separate calendar events
+- **Frontmatter Title Template**: Customize the event title using {{fieldName}} variables
+- **Frontmatter Content Template**: Customize the event description using {{fieldName}} variables
+
 ## Usage Instructions
 
 1. Install and enable this plugin in Obsidian
 2. Configure in plugin settings:
-   - Heading level to extract (primary or secondary)
-   - HTTP server port (default 19347)
+   - Choose extraction mode (Headings, Bullet Points, or Tasks)
+   - Set diary naming format and folder path
+   - Configure HTTP server port (default 19347)
 3. Copy the ICS subscription link provided by the plugin
 4. Add this subscription link in your system calendar application
 5. Now your Obsidian diary content will be automatically synchronized to the system calendar
@@ -93,3 +121,4 @@ After subscribing to `http://127.0.0.1:99347/feed.ics` in the system calendar, y
 - This plugin is developed using TypeScript
 - Starts a local HTTP server to provide ICS files
 - Generates calendar files according to the ICS standard
+- Supports flexible content extraction: headings, bullet points, and tasks
